@@ -1,0 +1,5 @@
+name = "aproxy"
+compatibility_date = "2023-12-01"
+
+[env.production]
+compatibility_date = "2023-12-01"

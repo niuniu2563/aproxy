@@ -1,0 +1,16 @@
+{
+  "name": "aproxy",
+  "version": "1.0.0",
+  "description": "AList proxy service for Cloudflare Pages",
+  "main": "functions/[[path]].js",
+  "scripts": {
+    "dev": "wrangler pages dev",
+    "deploy": "wrangler pages deploy"
+  },
+  "keywords": ["alist", "proxy", "cloudflare", "pages"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
