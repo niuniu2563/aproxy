@@ -1,6 +1,6 @@
 // AList 代理服务 API
 // 配置项 - 请替换为实际值
-const ADDRESS = "YOUR_ADDRESS";
+const ADDRESS = "https://alist.canghai.org";
 const TOKEN = "alist-0cb72587-9fb0-484d-9908-8110e04bef96xIHPCwqFuYCbDjWMknOqUiZk9NHzyASp4j1f1OxGw6Vq39TH13jqvC0Ag128pIeT";
 const WORKER_ADDRESS = "https://aproxy.pages.dev";
 
