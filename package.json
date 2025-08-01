@@ -2,7 +2,7 @@
   "name": "aproxy",
   "version": "1.0.0",
   "description": "AList proxy service for Cloudflare Pages",
-  "main": "functions/[[path]].js",
+  "main": "functions/api.js",
   "scripts": {
     "dev": "wrangler pages dev",
     "deploy": "wrangler pages deploy"

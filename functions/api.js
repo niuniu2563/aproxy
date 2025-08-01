@@ -1,11 +1,8 @@
-// AList 代理服务 API
-// 配置项 - 请替换为实际值
-const ADDRESS = "https://alist.canghai.org";
-const TOKEN = "alist-0cb72587-9fb0-484d-9908-8110e04bef96xIHPCwqFuYCbDjWMknOqUiZk9NHzyASp4j1f1OxGw6Vq39TH13jqvC0Ag128pIeT";
-const WORKER_ADDRESS = "https://aproxy.pages.dev";
+var ADDRESS = "https://alist.canghai.org";
+var TOKEN = "alist-0cb72587-9fb0-484d-9908-8110e04bef96xIHPCwqFuYCbDjWMknOqUiZk9NHzyASp4j1f1OxGw6Vq39TH13jqvC0Ag128pIeT";
+var WORKER_ADDRESS = "https://aproxy.pages.dev";
 
-// HMAC-SHA256 signature verification
-async function verify(data, _sign) {
+var verify = async (data, _sign) => {
   const signSlice = _sign.split(":");
   if (!signSlice[signSlice.length - 1]) {
     return "expire missing";
@@ -14,7 +11,7 @@ async function verify(data, _sign) {
   if (isNaN(expire)) {
     return "expire invalid";
   }
-  if (expire < Date.now() / 1000 && expire > 0) {
+  if (expire < Date.now() / 1e3 && expire > 0) {
     return "expire expired";
   }
   const right = await hmacSha256Sign(data, expire);
@@ -22,9 +19,9 @@ async function verify(data, _sign) {
     return "sign mismatch";
   }
   return "";
-}
+};
 
-async function hmacSha256Sign(data, expire) {
+var hmacSha256Sign = async (data, expire) => {
   const key = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(TOKEN),
@@ -41,9 +38,8 @@ async function hmacSha256Sign(data, expire) {
     new TextEncoder().encode(`${data}:${expire}`)
   );
   return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_") + ":" + expire;
-}
+};
 
-// Handle download requests
 async function handleDownload(request) {
   const origin = request.headers.get("origin") ?? "*";
   const url = new URL(request.url);
@@ -52,19 +48,20 @@ async function handleDownload(request) {
   
   const verifyResult = await verify(path, sign);
   if (verifyResult !== "") {
-    const resp = new Response(
+    return new Response(
       JSON.stringify({
         code: 401,
-        message: verifyResult
+        message: `sign invalid`,
+        data: null
       }),
       {
+        status: 401,
         headers: {
           "content-type": "application/json;charset=UTF-8",
           "Access-Control-Allow-Origin": origin
         }
       }
     );
-    return resp;
   }
 
   let resp = await fetch(`${ADDRESS}/api/fs/link`, {
@@ -80,7 +77,13 @@ async function handleDownload(request) {
   
   let res = await resp.json();
   if (res.code !== 200) {
-    return new Response(JSON.stringify(res));
+    return new Response(JSON.stringify(res), {
+      status: res.code || 500,
+      headers: {
+        "content-type": "application/json;charset=UTF-8",
+        "Access-Control-Allow-Origin": origin
+      }
+    });
   }
 
   request = new Request(res.data.url, request);
@@ -115,7 +118,6 @@ async function handleDownload(request) {
   return response;
 }
 
-// Handle OPTIONS requests for CORS
 function handleOptions(request) {
   const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -141,10 +143,13 @@ function handleOptions(request) {
   }
 }
 
-// 主要请求处理器
-export async function onRequest({ request }) {
+async function handleRequest(request) {
   if (request.method === "OPTIONS") {
     return handleOptions(request);
   }
   return await handleDownload(request);
+}
+
+export async function onRequest({ request }) {
+  return await handleRequest(request);
 }
