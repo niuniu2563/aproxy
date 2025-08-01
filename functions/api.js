@@ -86,36 +86,15 @@ async function handleDownload(request) {
     });
   }
 
-  request = new Request(res.data.url, request);
-  if (res.data.header) {
-    for (const k in res.data.header) {
-      for (const v of res.data.header[k]) {
-        request.headers.set(k, v);
-      }
+  // 直接返回重定向，让客户端直接从原始服务器下载
+  return new Response(null, {
+    status: 302,
+    headers: {
+      "Location": res.data.url,
+      "Access-Control-Allow-Origin": origin,
+      "Vary": "Origin"
     }
-  }
-
-  let response = await fetch(request);
-  while (response.status >= 300 && response.status < 400) {
-    const location = response.headers.get("Location");
-    if (location) {
-      if (location.startsWith(`${WORKER_ADDRESS}/`)) {
-        request = new Request(location, request);
-        return await onRequest({ request });
-      } else {
-        request = new Request(location, request);
-        response = await fetch(request);
-      }
-    } else {
-      break;
-    }
-  }
-
-  response = new Response(response.body, response);
-  response.headers.delete("set-cookie");
-  response.headers.set("Access-Control-Allow-Origin", origin);
-  response.headers.append("Vary", "Origin");
-  return response;
+  });
 }
 
 function handleOptions(request) {
